@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -15,6 +16,8 @@ namespace Raptor
     internal static class Program
     {
         private static Assembly _terrariaAssembly;
+        private static readonly Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string, Assembly>();
+
 
         [STAThread]
         private static void Main(string[] args)
@@ -94,29 +97,43 @@ namespace Raptor
 
         private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            var name = args.Name;
-            var shortName = name.Split(',')[0];
-            if (shortName == "Terraria")
+
+            string fileName = args.Name.Split(',')[0];
+            string path = Path.Combine("plugins", fileName + ".dll");
+
+            if (fileName == "Terraria")
             {
                 return _terrariaAssembly;
             }
 
-            // Resolve assemblies packed into the Terraria assembly. This is necessary since we're not using
-            // WindowsLaunch to launch the game.
-            var resourceName = new AssemblyName(args.Name).Name + ".dll";
-            resourceName = _terrariaAssembly.GetManifestResourceNames().FirstOrDefault(n => n.EndsWith(resourceName));
-            if (resourceName == null)
+            if (File.Exists(path))
             {
-                return null;
+                Assembly assembly;
+                if (!loadedAssemblies.TryGetValue(fileName, out assembly))
+                {
+                    assembly = Assembly.Load(File.ReadAllBytes(path));
+                    loadedAssemblies.Add(fileName, assembly);
+                    return assembly;
+                }
             }
+            else
+            {
+                var resourceName = new AssemblyName(args.Name).Name + ".dll";
+                resourceName = _terrariaAssembly.GetManifestResourceNames().FirstOrDefault(n => n.EndsWith(resourceName));
+                if (resourceName == null)
+                {
+                    return null;
+                }
 
-            using (var stream = _terrariaAssembly.GetManifestResourceStream(resourceName))
-            {
-                // ReSharper disable once PossibleNullReferenceException
-                var bytes = new byte[stream.Length];
-                stream.Read(bytes, 0, bytes.Length);
-                return Assembly.Load(bytes);
+                using (var stream = _terrariaAssembly.GetManifestResourceStream(resourceName))
+                {
+                    // ReSharper disable once PossibleNullReferenceException
+                    var bytes = new byte[stream.Length];
+                    stream.Read(bytes, 0, bytes.Length);
+                    return Assembly.Load(bytes);
+                }
             }
+            return null;
         }
 
         private static void Run(string[] args)

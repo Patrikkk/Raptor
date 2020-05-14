@@ -18,11 +18,12 @@ namespace Raptor.Hooks
         /// </summary>
         public static event EventHandler Initialized;
 
-        /// <summary>
-        ///     Invoked when lighting is occurring.
-        /// </summary>
-        public static event EventHandler<LightingEventArgs> Lighting;
-
+#if !DEBUG
+		/// <summary>
+		///     Invoked when lighting is occurring.
+		/// </summary>
+		public static event EventHandler<LightingEventArgs> Lighting;
+#endif
         /// <summary>
         ///     Invoked when the game content is loaded.
         /// </summary>
@@ -43,14 +44,15 @@ namespace Raptor.Hooks
             Initialized?.Invoke(null, EventArgs.Empty);
         }
 
-        internal static bool InvokeLighting(object swipeData)
+#if !DEBUG
+		internal static bool InvokeLighting(object swipeData)
         {
             var args = new LightingEventArgs((Lighting.LightingSwipeData)swipeData);
             Lighting?.Invoke(null, args);
             return args.Handled;
         }
-
-        internal static void InvokeLoadedContent(ContentManager contentManager)
+#endif
+		internal static void InvokeLoadedContent(ContentManager contentManager)
         {
             LoadedContent?.Invoke(null, new LoadedContentEventArgs(contentManager));
         }
