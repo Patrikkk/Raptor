@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using JetBrains.Annotations;
 using Terraria;
 
@@ -13,6 +14,43 @@ namespace RaptorShock
     {
         private static readonly Dictionary<string, int> ItemNamesToIds = new Dictionary<string, int>();
         private static readonly Dictionary<string, int> ProjectileNamesToIds = new Dictionary<string, int>();
+
+        /// <summary>
+        /// Finds a Player based on name or ID
+        /// </summary>
+        /// <param name="plr">Player name or ID</param>
+        /// <returns>A list of matching players</returns>
+        public static List<Player> FindByNameOrID(string plr)
+        {
+            var found = new List<Player>();
+            // Avoid errors caused by null search
+            if (plr == null)
+                return found;
+
+            byte plrID;
+            if (byte.TryParse(plr, out plrID) && plrID < Main.maxPlayers)
+            {
+                Player player = Main.player[plrID];
+                if (player != null && player.active)
+                {
+                    return new List<Player> { player };
+                }
+            }
+
+            string plrLower = plr.ToLower();
+            foreach (Player player in Main.player)
+            {
+                if (player != null)
+                {
+                    // Must be an EXACT match
+                    if (player.name == plr)
+                        return new List<Player> { player };
+                    if (player.name.ToLower().StartsWith(plrLower))
+                        found.Add(player);
+                }
+            }
+            return found;
+        }
 
         /// <summary>
         ///     Gets the local player.

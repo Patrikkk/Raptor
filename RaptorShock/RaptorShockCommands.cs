@@ -7,7 +7,10 @@ using Terraria.ID;
 
 namespace RaptorShock
 {
-    internal sealed class RaptorShockCommands
+#pragma warning disable 1591
+
+	[CLSCompliant(false)]
+    public sealed class RaptorShockCommands
     {
         public int? DefenseValue { get; private set; }
         public bool IsFullBright { get; private set; }
@@ -103,7 +106,7 @@ namespace RaptorShock
             HelpText = "Provides help about a command.")]
         public void Help(string commandName = null)
         {
-            var commands = RaptorShockPlugin.Instance.CommandManager.Commands;
+            var commands = RShockAPI.CommandManager.Commands;
             if (commandName == null)
             {
                 Utils.ShowSuccessMessage("Available commands:");
@@ -127,6 +130,14 @@ namespace RaptorShock
             }
             Utils.ShowInfoMessage($"Syntax: {command.Syntax}");
             Utils.ShowInfoMessage(command.HelpText ?? "No help text available.");
+        }
+
+        [Command("reload", ".reload",
+           HelpText = "Reloads RaptorShock config.")]
+        public void Reload ()
+        {
+            RShockAPI.Config = Config.Read(RShockAPI.ConfigPath);
+            Utils.ShowSuccessMessage($"Reloaded RaptorShock config!");
         }
 
         [Command("infammo", ".infammo",

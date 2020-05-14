@@ -22,31 +22,88 @@ namespace RaptorShock
     ///     Represents the RaptorShock plugin.
     /// </summary>
     [ApiVersion(1, 0)]
-    public class RaptorShockPlugin : TerrariaPlugin
+    public class RShockAPI : TerrariaPlugin
     {
-        private static readonly string ConfigPath = Path.Combine("config", "raptorshock.json");
+        #region Info
+        /// <inheritdoc />
+        public override string Author => "MarioE";
 
-        private readonly RaptorShockCommands _commands = new RaptorShockCommands();
-        private readonly Config _config = new Config();
-        private readonly ILog _log = LogManager.GetLogger("RaptorShock");
+        /// <inheritdoc />
+        public override string Description => "Provides a command API.";
 
-        private KeyboardState _keyboard;
-        private KeyboardState _lastKeyboard;
+        /// <inheritdoc />
+        public override string Name => "RaptorShock";
+
+        /// <inheritdoc />
+        public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
+        #endregion
 
         /// <summary>
-        ///     Initializes the <see cref="RaptorShockPlugin" /> class.
+        /// The initial commands.
+        /// </summary>
+		public static readonly RaptorShockCommands Commands = new RaptorShockCommands();
+
+        /// <summary>
+        /// This is where RaptorShock saves data.
+        /// </summary>
+        public static string SavePath = "rshock";
+
+        internal static readonly string ConfigPath = Path.Combine(SavePath, "raptorshock.json");
+
+        /// <summary>
+        /// Config of RaptorShock
+        /// </summary>
+        public static Config Config = new Config();
+        public static ILog Log = LogManager.GetLogger("RaptorShock");
+
+        private static KeyboardState _keyboard;
+        private static KeyboardState _lastKeyboard;
+
+        /// <summary>
+        /// Checks if given key is being held down.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static bool IsKeyDown(Keys key) => _keyboard.IsKeyDown(key);
+        /// <summary>
+        /// Checks if given key was pressed.
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
+        public static bool IsKeyTapped(Keys key) => _keyboard.IsKeyDown(key) && !_lastKeyboard.IsKeyDown(key);
+
+        /// <summary>
+        /// True if the client is pressing left or right Alt.
+        /// </summary>
+        public static bool IsAltDown => IsKeyDown(Keys.LeftAlt) || IsKeyDown(Keys.RightAlt);
+
+        /// <summary>
+        ///     Gets the command manager.
+        /// </summary>
+        [NotNull]
+        public static CommandManager CommandManager { get; } = new CommandManager();
+
+        /// <summary>
+        ///     Initializes the <see cref="RShockAPI" /> class.
         /// </summary>
         [CLSCompliant(false)]
-        public RaptorShockPlugin()
+        public RShockAPI()
         {
-            Instance = this;
+            Order = 0;
 
-            Directory.CreateDirectory("config");
+           
+        }
+
+        /// <inheritdoc />
+        public override void Initialize()
+        {
+            Directory.CreateDirectory(SavePath);
             if (File.Exists(ConfigPath))
             {
-                _config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(ConfigPath));
+                Config = Config.Read(ConfigPath);
             }
 
+            Log.Info("Initialized RaptorShock.");
             CommandManager.AddParser(typeof(byte), s => byte.TryParse(s, out var result) ? (object)result : null);
             CommandManager.AddParser(typeof(float), s => float.TryParse(s, out var result) ? (object)result : null);
             CommandManager.AddParser(typeof(int), s => int.TryParse(s, out var result) ? (object)result : null);
@@ -61,7 +118,7 @@ namespace RaptorShock
                 return projectiles.Count == 1 ? projectiles[0] : null;
             });
             CommandManager.AddParser(typeof(string), s => s);
-            CommandManager.Register(_commands);
+            CommandManager.Register(Commands);
 
             GameHooks.Initialized += OnGameInitialized;
             GameHooks.Lighting += OnGameLighting;
@@ -72,37 +129,13 @@ namespace RaptorShock
             PlayerHooks.Updated += OnPlayerUpdated;
         }
 
-        /// <summary>
-        ///     Gets the RaptorShock plugin instance.
-        /// </summary>
-        public static RaptorShockPlugin Instance { get; private set; }
-
-        /// <inheritdoc />
-        public override string Author => "MarioE";
-
-        /// <summary>
-        ///     Gets the command manager.
-        /// </summary>
-        [NotNull]
-        public CommandManager CommandManager { get; } = new CommandManager();
-
-        /// <inheritdoc />
-        public override string Description => "Provides a command API.";
-
-        /// <inheritdoc />
-        public override string Name => "RaptorShock";
-
-        /// <inheritdoc />
-        public override Version Version => Assembly.GetExecutingAssembly().GetName().Version;
-
-        private bool IsAltDown => IsKeyDown(Keys.LeftAlt) || IsKeyDown(Keys.RightAlt);
 
         /// <inheritdoc />
         protected override void Dispose(bool disposing)
         {
             if (disposing)
             {
-                File.WriteAllText(ConfigPath, JsonConvert.SerializeObject(_config, Formatting.Indented));
+                File.WriteAllText(ConfigPath, JsonConvert.SerializeObject(Config, Formatting.Indented));
 
                 GameHooks.Initialized -= OnGameInitialized;
                 GameHooks.Lighting -= OnGameLighting;
@@ -116,18 +149,15 @@ namespace RaptorShock
             base.Dispose(disposing);
         }
 
-        private bool IsKeyDown(Keys key) => _keyboard.IsKeyDown(key);
-        private bool IsKeyTapped(Keys key) => _keyboard.IsKeyDown(key) && !_lastKeyboard.IsKeyDown(key);
-
         private void OnGameInitialized(object sender, EventArgs e)
         {
-            Main.showSplash = _config.ShowSplashScreen;
+            Main.showSplash = Config.ShowSplashScreen;
             Utils.InitializeNames();
         }
 
         private void OnGameLighting(object sender, LightingEventArgs e)
         {
-            if (_commands.IsFullBright)
+            if (Commands.IsFullBright)
             {
                 e.SwipeData.function = lsd =>
                 {
@@ -166,12 +196,12 @@ namespace RaptorShock
                 else
                 {
                     var chatText = Main.chatText;
-                    if (chatText.StartsWith(".") && !chatText.StartsWith(".."))
+                    if (chatText.StartsWith(Config.CommandPrefix) && !chatText.StartsWith(Config.CommandPrefix + Config.CommandPrefix))
                     {
                         try
                         {
                             CommandManager.Run(chatText.Substring(1));
-                            _log.Info($"Executed '{chatText}'.");
+                            Log.Info($"Executed '{chatText}'.");
                         }
                         catch (FormatException ex)
                         {
@@ -180,13 +210,13 @@ namespace RaptorShock
                         catch (Exception ex)
                         {
                             Utils.ShowErrorMessage("An exception occurred. Check the log for more details.");
-                            _log.Error($"An exception occurred while running the command '{chatText}':");
-                            _log.Error(ex);
+                            Log.Error($"An exception occurred while running the command '{chatText}':");
+                            Log.Error(ex);
                         }
                     }
                     else if (!string.IsNullOrEmpty(chatText))
                     {
-                        if (chatText.StartsWith("."))
+                        if (chatText.StartsWith(Config.CommandPrefix))
                         {
                             chatText = chatText.Substring(1);
                         }
@@ -214,7 +244,7 @@ namespace RaptorShock
 
         private void OnPlayerHurting(object sender, HurtingEventArgs e)
         {
-            if (e.IsLocal && _commands.IsGodMode)
+            if (e.IsLocal && Commands.IsGodMode)
             {
                 e.Handled = true;
             }
@@ -222,7 +252,7 @@ namespace RaptorShock
 
         private void OnPlayerKill(object sender, KillEventArgs e)
         {
-            if (e.IsLocal && _commands.IsGodMode)
+            if (e.IsLocal && Commands.IsGodMode)
             {
                 e.Handled = true;
             }
@@ -233,26 +263,27 @@ namespace RaptorShock
             if (e.IsLocal)
             {
                 var player = e.Player;
-                if (_commands.IsNoclip)
+                if (Commands.IsNoclip)
                 {
+                    float movespeed = IsKeyDown(Keys.LeftShift) ? player.moveSpeed * Config.NoclipSpeedBoost : player.moveSpeed;
                     if (player.controlLeft)
                     {
-                        _commands.NoclipPosition += new Vector2(-player.moveSpeed, 0);
+                        Commands.NoclipPosition += new Vector2(-movespeed, 0);
                     }
                     if (player.controlRight)
                     {
-                        _commands.NoclipPosition += new Vector2(player.moveSpeed, 0);
+                        Commands.NoclipPosition += new Vector2(movespeed, 0);
                     }
                     if (player.controlUp)
                     {
-                        _commands.NoclipPosition += new Vector2(0, -player.moveSpeed);
+                        Commands.NoclipPosition += new Vector2(0, -movespeed);
                     }
                     if (player.controlDown)
                     {
-                        _commands.NoclipPosition += new Vector2(0, player.moveSpeed);
+                        Commands.NoclipPosition += new Vector2(0, movespeed);
                     }
                     player.gfxOffY = 0;
-                    player.position = _commands.NoclipPosition;
+                    player.position = Commands.NoclipPosition;
                 }
             }
         }
@@ -262,11 +293,11 @@ namespace RaptorShock
             if (e.IsLocal)
             {
                 var player = e.Player;
-                if (_commands.DefenseValue != null)
+                if (Commands.DefenseValue != null)
                 {
-                    player.statDefense = _commands.DefenseValue.Value;
+                    player.statDefense = Commands.DefenseValue.Value;
                 }
-                if (_commands.IsInfiniteAmmo)
+                if (Commands.IsInfiniteAmmo)
                 {
                     foreach (var item in player.inventory)
                     {
@@ -276,36 +307,38 @@ namespace RaptorShock
                         }
                     }
                 }
-                if (_commands.IsInfiniteBreath || _commands.IsGodMode)
+                if (Commands.IsInfiniteBreath || Commands.IsGodMode)
                 {
                     player.breath = player.breathMax - 1;
                 }
-                if (_commands.IsInfiniteHealth || _commands.IsGodMode)
+                if (Commands.IsInfiniteHealth || Commands.IsGodMode)
                 {
                     player.statLife = player.statLifeMax2;
                 }
-                if (_commands.IsInfiniteMana || _commands.IsGodMode)
+                if (Commands.IsInfiniteMana || Commands.IsGodMode)
                 {
                     player.statMana = player.statManaMax2;
                 }
-                if (_commands.IsInfiniteWings)
+                if (Commands.IsInfiniteWings)
                 {
                     player.wingTime = 2;
                 }
-                if (_commands.RangeValue != null)
+                if (Commands.RangeValue != null)
                 {
-                    var range = _commands.RangeValue.Value;
+                    var range = Commands.RangeValue.Value;
                     Player.tileRangeX = range;
                     Player.tileRangeY = range;
                 }
-                if (_commands.SpeedValue != null)
+                if (Commands.SpeedValue != null)
                 {
-                    var speed = (float)_commands.SpeedValue;
+                    var speed = (float)Commands.SpeedValue;
                     player.maxRunSpeed = speed;
                     player.moveSpeed = speed;
                     player.runAcceleration = speed / 12.5f;
                 }
             }
         }
+
+       
     }
 }
