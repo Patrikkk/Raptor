@@ -5,7 +5,7 @@ using Terraria;
 
 namespace Raptor.Hooks.Events.Game
 {
-#if !DEBUG
+#if DEBUG
 	/// <summary>
 	///     Provides data for the <see cref="GameHooks.Lighting" /> event.
 	/// </summary>

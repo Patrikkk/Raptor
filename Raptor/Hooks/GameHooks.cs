@@ -18,7 +18,7 @@ namespace Raptor.Hooks
         /// </summary>
         public static event EventHandler Initialized;
 
-#if !DEBUG
+#if DEBUG
 		/// <summary>
 		///     Invoked when lighting is occurring.
 		/// </summary>
@@ -44,7 +44,7 @@ namespace Raptor.Hooks
             Initialized?.Invoke(null, EventArgs.Empty);
         }
 
-#if !DEBUG
+#if DEBUG
 		internal static bool InvokeLighting(object swipeData)
         {
             var args = new LightingEventArgs((Lighting.LightingSwipeData)swipeData);
