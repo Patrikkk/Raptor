@@ -34,7 +34,7 @@ namespace Raptor.Api
         public void LoadPlugins()
         {
             Directory.CreateDirectory("plugins");
-            foreach (var pluginPath in Directory.EnumerateFiles("plugins", "*.dll"))
+            foreach (var pluginPath     in Directory.EnumerateFiles("plugins", "*.dll"))
             {
                 try
                 {
@@ -80,6 +80,30 @@ namespace Raptor.Api
                     _log.Error(ex);
                 }
             }
+
+            IOrderedEnumerable<TerrariaPlugin> orderedPluginSelector =
+                from x in _plugins
+                orderby x.Order, x.Name
+                select x;
+
+            foreach (TerrariaPlugin current in orderedPluginSelector)
+            {
+                try
+                {
+                    current.Initialize();
+                }
+                catch (Exception ex)
+                {
+                    // Broken plugins better stop the entire server init.
+                    throw new InvalidOperationException(string.Format(
+                        "Plugin \"{0}\" has thrown an exception during initialization.", current.Name), ex);
+                }
+
+                _log.Error(string.Format(
+                    "Plugin {0} v{1} (by {2}) initiated.", current.Name, current.Version, current.Author));
+            }
+
+
         }
     }
 }
