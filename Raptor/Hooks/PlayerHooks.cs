@@ -3,6 +3,8 @@ using JetBrains.Annotations;
 using Raptor.Hooks.Events.Player;
 using Terraria;
 using Terraria.DataStructures;
+using Microsoft.Xna.Framework.Input;
+using System.Collections.Generic;
 
 namespace Raptor.Hooks
 {
@@ -12,6 +14,14 @@ namespace Raptor.Hooks
     [PublicAPI]
     public static class PlayerHooks
     {
+        /// <summary>
+        /// Invoked when a keyboard key is pressed.
+        /// </summary>
+        public static event EventHandler<KeyboardEventArgs> KeysTapped;
+        /// <summary>
+        /// Invoked when a keyboard key is pressed.
+        /// </summary>
+        public static event EventHandler<KeyboardEventArgs> KeysPressed;
         /// <summary>
         ///     Invoked when a player is being killed.
         /// </summary>
@@ -51,6 +61,24 @@ namespace Raptor.Hooks
         ///     Invoked when a player is updated, after variables are set.
         /// </summary>
         public static event EventHandler<UpdatedEventArgs> Updated2;
+
+        /// <summary>
+        /// Invoke the KeysTapped event.
+        /// </summary>
+        /// <param name="keys"></param>
+        public static void InvokeKeysTapped(List<Keys> keys)
+        {
+            KeysTapped?.Invoke(null, new KeyboardEventArgs(keys));
+        }
+
+        /// <summary>
+        /// Invoke the KeyPressed event.
+        /// </summary>
+        /// <param name="keys"></param>
+        public static void InvokeKeysPressed(List<Keys> keys)
+        {
+            KeysPressed?.Invoke(null, new KeyboardEventArgs(keys));
+        }
 
         internal static void InvokeHurt(object player, object damageSource, int damage, bool isPvP, bool isCritical)
         {

@@ -108,6 +108,7 @@
     <Compile Include="Hooks\Events\Net\SentDataEventArgs.cs" />
     <Compile Include="Hooks\Events\Player\HurtEventArgs.cs" />
     <Compile Include="Hooks\Events\Player\HurtingEventArgs.cs" />
+    <Compile Include="Hooks\Events\Player\KeyboardEventArgs.cs" />
     <Compile Include="Hooks\Events\Player\KilledEventArgs.cs" />
     <Compile Include="Hooks\Events\Player\KillEventArgs.cs" />
     <Compile Include="Hooks\Events\Player\UpdatedEventArgs.cs" />
