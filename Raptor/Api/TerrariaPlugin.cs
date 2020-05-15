@@ -33,6 +33,19 @@ namespace Raptor.Api
         [NotNull]
         public virtual Version Version => new Version(1, 0);
 
+        ///<summary>
+        /// The plugin's order. This represents load priority.
+        /// Plugins are sorted first based on order, then on name where conflicts occur.
+        /// A lower order represents a higher load priority - I.E., order 1 is loaded before order 5.
+        /// This value may be negative.
+        /// The default plugin constructor will set order to 1.
+        ///</summary>
+        public int Order
+        {
+            get;
+            set;
+        }
+
         /// <summary>
         ///     Disposes the plugin.
         /// </summary>
@@ -51,11 +64,24 @@ namespace Raptor.Api
         }
 
         /// <summary>
+        /// Instantiator.
+        /// </summary>
+        protected TerrariaPlugin()
+        {
+            this.Order = 1;
+        }
+
+        /// <summary>
         ///     Destructs the plugin.
         /// </summary>
         ~TerrariaPlugin()
         {
             Dispose(false);
         }
+
+        ///<summary>
+        /// Invoked after the plugin is constructed. Initialization logic should occur here.
+        ///</summary>
+        public abstract void Initialize();
     }
 }

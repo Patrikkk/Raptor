@@ -39,6 +39,7 @@ namespace RaptorShock
         [CLSCompliant(false)]
         public RaptorShockPlugin()
         {
+            Order = 0;
             Instance = this;
 
             Directory.CreateDirectory("config");
@@ -46,7 +47,13 @@ namespace RaptorShock
             {
                 _config = JsonConvert.DeserializeObject<Config>(File.ReadAllText(ConfigPath));
             }
+        }
 
+        /// <summary>
+        /// Fired when plugin is called to initialize.
+        /// </summary>
+        public override void Initialize()
+        {
             CommandManager.AddParser(typeof(byte), s => byte.TryParse(s, out var result) ? (object)result : null);
             CommandManager.AddParser(typeof(float), s => float.TryParse(s, out var result) ? (object)result : null);
             CommandManager.AddParser(typeof(int), s => int.TryParse(s, out var result) ? (object)result : null);
