@@ -5,6 +5,7 @@ using Terraria;
 
 namespace Raptor.Hooks.Events.Game
 {
+#if DEBUG
     /// <summary>
     ///     Provides data for the <see cref="GameHooks.Lighting" /> event.
     /// </summary>
@@ -23,4 +24,5 @@ namespace Raptor.Hooks.Events.Game
         [NotNull]
         public Lighting.LightingSwipeData SwipeData { get; }
     }
+#endif
 }

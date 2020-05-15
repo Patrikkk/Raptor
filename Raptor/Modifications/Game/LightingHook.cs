@@ -6,7 +6,7 @@ using Raptor.Hooks;
 namespace Raptor.Modifications.Game
 {
     using static Instruction;
-
+#if DEBUG
     internal sealed class LightingHook : Modification
     {
         private const BindingFlags Flags = BindingFlags.NonPublic | BindingFlags.Static;
@@ -60,4 +60,5 @@ namespace Raptor.Modifications.Game
             callbackLightingSwipe.ReplaceShortBranches();
         }
     }
+#endif
 }

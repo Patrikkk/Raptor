@@ -64,7 +64,9 @@ namespace RaptorShock
             CommandManager.Register(_commands);
 
             GameHooks.Initialized += OnGameInitialized;
+#if DEBUG
             GameHooks.Lighting += OnGameLighting;
+#endif
             GameHooks.Update += OnGameUpdate;
             PlayerHooks.Hurting += OnPlayerHurting;
             PlayerHooks.Kill += OnPlayerKill;
@@ -105,7 +107,9 @@ namespace RaptorShock
                 File.WriteAllText(ConfigPath, JsonConvert.SerializeObject(_config, Formatting.Indented));
 
                 GameHooks.Initialized -= OnGameInitialized;
+#if DEBUG
                 GameHooks.Lighting -= OnGameLighting;
+#endif
                 GameHooks.Update -= OnGameUpdate;
                 PlayerHooks.Hurting -= OnPlayerHurting;
                 PlayerHooks.Kill -= OnPlayerKill;
@@ -125,6 +129,7 @@ namespace RaptorShock
             Utils.InitializeNames();
         }
 
+#if DEBUG
         private void OnGameLighting(object sender, LightingEventArgs e)
         {
             if (_commands.IsFullBright)
@@ -138,7 +143,7 @@ namespace RaptorShock
                 };
             }
         }
-
+#endif
         private void OnGameUpdate(object sender, HandledEventArgs e)
         {
             if (!Main.hasFocus)
