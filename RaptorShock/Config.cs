@@ -1,6 +1,7 @@
 ﻿using JetBrains.Annotations;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 
 namespace RaptorShock
@@ -23,6 +24,14 @@ namespace RaptorShock
         /// Speed of noclip movement when holding shift.
         /// </summary>
         public int NoclipSpeedBoost { get; set; } = 2;
+
+        /// <summary>
+        /// List of hotkeys. 
+        /// </summary>
+        public Dictionary<string, List<string>> HotKeys { get; set; } = new Dictionary<string, List<string>>() 
+        {
+            { "F", new List<string>() { ".goto" } }
+        };
 
 
         /// <summary>

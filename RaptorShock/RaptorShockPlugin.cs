@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.IO;
 using System.Linq;
@@ -53,28 +54,25 @@ namespace RaptorShock
         public static Config Config = new Config();
         public static ILog Log = LogManager.GetLogger("RaptorShock");
 
-
-        internal static KeyboardState _keyboard;
-        internal static KeyboardState _lastKeyboard;
+        private static List<Keys> keyCombination = new List<Keys>();
 
         /// <summary>
         /// Checks if given key is being held down.
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static bool IsKeyDown(Keys key) => _keyboard.IsKeyDown(key);
+        public static bool IsKeyDown(Keys key) => Main.keyState.IsKeyDown(key);
         /// <summary>
         /// Checks if given key was pressed.
         /// </summary>
         /// <param name="key"></param>
         /// <returns></returns>
-        public static bool IsKeyTapped(Keys key) => _keyboard.IsKeyDown(key) && !_lastKeyboard.IsKeyDown(key);
+        public static bool IsKeyTapped(Keys key) => Main.keyState.IsKeyDown(key) && !Main.oldKeyState.IsKeyDown(key);
 
         /// <summary>
         /// True if the client is pressing left or right Alt.
         /// </summary>
         public static bool IsAltDown => IsKeyDown(Keys.LeftAlt) || IsKeyDown(Keys.RightAlt);
-
 
         #region Initialize
         /// <summary>
@@ -90,11 +88,11 @@ namespace RaptorShock
         public override void Initialize()
         {
             Directory.CreateDirectory(SavePath);
-            if (File.Exists(ConfigPath))
+            if (!File.Exists(ConfigPath))
             {
-                Config = Config.Read(ConfigPath);
+                Config.Write(ConfigPath);
             }
-
+            Config = Config.Read(ConfigPath);
             Log.Info("Initialized RaptorShock.");
 
             CommandManager.Commands.InitCommands();
@@ -134,6 +132,55 @@ namespace RaptorShock
         {
             Main.showSplash = Config.ShowSplashScreen;
             Utils.InitializeNames();
+            PlayerHooks.KeysPressed += PlayerHooks_KeyPressed;
+            PlayerHooks.KeysTapped += PlayerHooks_KeysTapped;
+        }
+
+        private void PlayerHooks_KeysTapped(object sender, KeyboardEventArgs e)
+        {
+            //Utils.ShowInfoMessage($"Tapped {string.Join(", ", e.Keys.Select(k => k.ToString()))}");
+            
+            string symbol = "";
+            string keys = string.Join(" ", e.Keys);
+            if (e.Keys.Count > 1 && Utils.ModifierSymbols.ContainsKey(e.Keys.Last()))
+            {
+                symbol = Utils.ModifierSymbols[e.Keys.Last()];
+                keys = string.Join(" ", e.Keys.Remove(e.Keys.Last()));
+            }
+
+            if (Config.HotKeys.ContainsKey(symbol+keys))
+            {
+                List<string> lines = Config.HotKeys[symbol + keys];
+                foreach (string line in lines)
+                    CommandManager.Commands.HandleCommand(line);
+            }
+        }
+
+        private void PlayerHooks_KeyPressed(object sender, KeyboardEventArgs e)
+        {
+            //Utils.ShowInfoMessage($"Pressing {string.Join(", ", e.Keys.Select(k => k.ToString()))}");
+
+            // Release
+            if (e.Keys.Count == 0)
+            {
+                if (keyCombination.Count > 1)
+                {
+                    PlayerHooks.InvokeKeysTapped(keyCombination);
+                    keyCombination = new List<Keys>();
+                }
+                else
+                {
+                    Keys[] oldPressedKeys = Main.oldKeyState.GetPressedKeys();
+                    if (oldPressedKeys.Length == 1)
+                    {
+                        PlayerHooks.InvokeKeysTapped(oldPressedKeys.ToList());
+                    }
+                }
+            }
+            else if (e.Keys.Count > 1 && e.Keys.Count > keyCombination.Count)
+            {
+                keyCombination = e.Keys;
+            }
         }
 
         private void OnGameLighting(object sender, LightingEventArgs e)
@@ -157,9 +204,9 @@ namespace RaptorShock
                 return;
             }
 
-            _lastKeyboard = _keyboard;
-            _keyboard = Keyboard.GetState();
-            
+            if (Main.oldKeyState != Main.keyState)
+                PlayerHooks.InvokeKeysPressed(Main.keyState.GetPressedKeys().ToList());
+
             Main.chatRelease = false;
 
             // Don't misinterpret key presses in menus.

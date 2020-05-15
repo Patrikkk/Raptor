@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using Terraria;
 
 namespace RaptorShock
@@ -15,6 +16,12 @@ namespace RaptorShock
     {
         private static readonly Dictionary<string, int> ItemNamesToIds = new Dictionary<string, int>();
         private static readonly Dictionary<string, int> ProjectileNamesToIds = new Dictionary<string, int>();
+        internal static readonly Dictionary<Keys, string> ModifierSymbols = new Dictionary<Keys, string>() 
+        {
+            { Keys.LeftControl, "^" },
+            { Keys.LeftAlt, "!" },
+            { Keys.LeftShift, "+" }
+        };
 
         /// <summary>
         /// Finds a Player based on name or ID

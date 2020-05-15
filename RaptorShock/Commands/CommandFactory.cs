@@ -18,10 +18,7 @@ namespace RaptorShock.CommandManager
               .Where(m => m.GetCustomAttributes(typeof(CommandAttribute), false).Length > 0);
 
 
-            var cmds = GetCommands(cmdMethods, true);
-            var commandgroups = GetCommandGroups(assembly).Concat(cmds);
-
-            return commandgroups;
+            return GetCommandGroups(assembly).Concat(GetCommands(cmdMethods, true));
         }
         public static IEnumerable<Command> GetCommands(IEnumerable<MethodInfo> methods, bool filterSubCommands)
         {
