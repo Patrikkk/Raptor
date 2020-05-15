@@ -5,6 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Terraria;
 using Terraria.ID;
+using Terraria.Localization;
 
 namespace RaptorShock.CommandManager
 {
@@ -467,6 +468,23 @@ namespace RaptorShock.CommandManager
 
             Utils.LocalPlayerItem.useTime = useTime;
             Utils.ShowSuccessMessage($"Set use time to '{useTime}'.");
+        }
+
+        [Command("say")]
+        [CommandHelp(".say <message>")]
+        [CommandDescription("Sends chat message to the server.")]
+        public static void Say(CommandArgs args)
+        {
+            if (args.Parameters.Count < 1)
+                throw new CommandException("Syntax: .say <message>");
+            string message = string.Join(" ", args.Parameters);
+            
+            if (Main.netMode == 1)
+            {
+                NetMessage.SendData(25, -1, -1, NetworkText.FromLiteral(message), 0, 0f, 0f, 0f, 0, 0, 0);
+                return;
+            }
+            Utils.ShowMessage(message, new byte[] { 255, 255, 255 });
         }
     }
 }
