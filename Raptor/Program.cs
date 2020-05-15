@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.IO;
@@ -15,6 +16,7 @@ namespace Raptor
     internal static class Program
     {
         private static Assembly _terrariaAssembly;
+        private static readonly Dictionary<string, Assembly> loadedAssemblies = new Dictionary<string, Assembly>();
 
         [STAThread]
         private static void Main(string[] args)
@@ -94,11 +96,23 @@ namespace Raptor
 
         private static Assembly OnAssemblyResolve(object sender, ResolveEventArgs args)
         {
-            var name = args.Name;
-            var shortName = name.Split(',')[0];
-            if (shortName == "Terraria")
+            string fileName = args.Name.Split(',')[0];
+            string path = Path.Combine("plugins", fileName + ".dll");
+
+            if (fileName == "Terraria")
             {
                 return _terrariaAssembly;
+            }
+
+            if (File.Exists(path))
+            {
+                Assembly assembly;
+                if (!loadedAssemblies.TryGetValue(fileName, out assembly))
+                {
+                    assembly = Assembly.Load(File.ReadAllBytes(path));
+                    loadedAssemblies.Add(fileName, assembly);
+                    return assembly;
+                }
             }
 
             // Resolve assemblies packed into the Terraria assembly. This is necessary since we're not using
