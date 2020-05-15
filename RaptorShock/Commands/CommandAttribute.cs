@@ -1,51 +1,56 @@
 ﻿using System;
 using JetBrains.Annotations;
 
-namespace RaptorShock.Commands
+namespace RaptorShock.CommandManager
 {
     /// <summary>
     ///     Specifies that a method is a command.
     /// </summary>
-    [AttributeUsage(AttributeTargets.Method)]
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = false)]
     [MeansImplicitUse]
     public sealed class CommandAttribute : Attribute
     {
         /// <summary>
-        ///     Initializes a new instance of the <see cref="CommandAttribute" /> class with the specified name and syntax.
+        /// Gets the names of the command.
         /// </summary>
-        /// <param name="name">The name, which must not be <c>null</c>.</param>
-        /// <param name="syntax">The synatx, which must not be <c>null</c>.</param>
-        /// <exception cref="ArgumentNullException">
-        ///     Either <paramref name="name" /> or <paramref name="syntax" />is <c>null</c>.
-        /// </exception>
-        public CommandAttribute([NotNull] string name, [NotNull] string syntax)
+        public string[] Names { get; }
+
+        /// <summary>
+        /// Gets or sets whether to do logging of this command.
+        /// </summary>
+        public bool DoLog { get; set; } = true;
+
+
+        public CommandAttribute(params string[] aliases)
         {
-            Name = name ?? throw new ArgumentNullException(nameof(name));
-            Syntax = syntax ?? throw new ArgumentNullException(nameof(syntax));
+            Names = aliases;
+        }
+    }
+
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = false)]
+    public sealed class CommandHelpAttribute : Attribute
+    {
+        public CommandHelpAttribute(string helpText)
+        {
+            HelpText = helpText;
         }
 
         /// <summary>
-        ///     Gets or sets the alias.
+        /// Gets the description of this command.
         /// </summary>
-        [CanBeNull]
-        public string Alias { get; set; }
+        public string HelpText { get; }
+    }
+    [AttributeUsage(AttributeTargets.Class | AttributeTargets.Method, Inherited = false)]
+    public sealed class CommandDescriptionAttribute : Attribute
+    {
+        public CommandDescriptionAttribute(params string[] helpDesc)
+        {
+            HelpDesc = helpDesc;
+        }
 
         /// <summary>
-        ///     Gets or sets the help text.
+        /// Gets the syntax of this command.
         /// </summary>
-        [CanBeNull]
-        public string HelpText { get; set; }
-
-        /// <summary>
-        ///     Gets the name.
-        /// </summary>
-        [NotNull]
-        public string Name { get; }
-
-        /// <summary>
-        ///     Gets the syntax.
-        /// </summary>
-        [NotNull]
-        public string Syntax { get; }
+        public string[] HelpDesc { get; }
     }
 }

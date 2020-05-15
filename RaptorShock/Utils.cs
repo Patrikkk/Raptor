@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using JetBrains.Annotations;
+using Microsoft.Xna.Framework;
 using Terraria;
 
 namespace RaptorShock
@@ -154,6 +155,59 @@ namespace RaptorShock
                 }
             }
             return projectiles;
+        }
+
+        /// <summary>
+        ///     Gets the prefix matching a name or ID.
+        /// </summary>
+        /// <param name="nameOrId">The name or ID, which must not be <c>null</c>.</param>
+        /// <returns>The list of prefixes.</returns>
+        /// <exception cref="ArgumentNullException"><paramref name="nameOrId" /> is <c>null</c>.</exception>
+        [CLSCompliant(false)]
+        [ItemNotNull]
+        [NotNull]
+        public static int GetPrefixByNameOrId([NotNull] string nameOrId)
+        {
+            if (nameOrId == null)
+            {
+                throw new ArgumentNullException(nameof(nameOrId));
+            }
+
+            int type = -1;
+            if (int.TryParse(nameOrId, out type) && type >= 0 && type <= Lang.prefix.Length)
+            {
+                return type;
+            }
+
+            return Array.FindIndex(Lang.prefix, e => e.Key == nameOrId);
+        }
+
+        /// <summary>
+        ///     Shows an message with color.
+        /// </summary>
+        /// <param name="message">The message, which must not be <c>null</c>.</param>
+        public static void ShowMessage([NotNull] string message, Color color)
+        {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            Main.NewText(message, color.R, color.G, color.B);
+        }
+
+        /// <summary>
+        ///     Shows an message with rgb color.
+        /// </summary>
+        /// <param name="message">The message, which must not be <c>null</c>.</param>
+        public static void ShowMessage([NotNull] string message, byte[] rgb)
+        {
+            if (message == null)
+            {
+                throw new ArgumentNullException(nameof(message));
+            }
+
+            Main.NewText(message, rgb[0], rgb[1], rgb[2]);
         }
 
         /// <summary>

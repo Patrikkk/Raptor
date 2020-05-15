@@ -12,7 +12,6 @@ using Raptor.Api;
 using Raptor.Hooks;
 using Raptor.Hooks.Events.Game;
 using Raptor.Hooks.Events.Player;
-using RaptorShock.Commands;
 using Terraria;
 using Terraria.Chat;
 
@@ -39,15 +38,13 @@ namespace RaptorShock
         #endregion
 
         /// <summary>
-        /// The initial commands.
-        /// </summary>
-		public static readonly RaptorShockCommands Commands = new RaptorShockCommands();
-
-        /// <summary>
         /// This is where RaptorShock saves data.
         /// </summary>
         public static string SavePath = "rshock";
 
+        /// <summary>
+        /// Direct path to the RaptorShock config.
+        /// </summary>
         internal static readonly string ConfigPath = Path.Combine(SavePath, "raptorshock.json");
 
         /// <summary>
@@ -56,8 +53,9 @@ namespace RaptorShock
         public static Config Config = new Config();
         public static ILog Log = LogManager.GetLogger("RaptorShock");
 
-        private static KeyboardState _keyboard;
-        private static KeyboardState _lastKeyboard;
+
+        internal static KeyboardState _keyboard;
+        internal static KeyboardState _lastKeyboard;
 
         /// <summary>
         /// Checks if given key is being held down.
@@ -77,12 +75,8 @@ namespace RaptorShock
         /// </summary>
         public static bool IsAltDown => IsKeyDown(Keys.LeftAlt) || IsKeyDown(Keys.RightAlt);
 
-        /// <summary>
-        ///     Gets the command manager.
-        /// </summary>
-        [NotNull]
-        public static CommandManager CommandManager { get; } = new CommandManager();
 
+        #region Initialize
         /// <summary>
         ///     Initializes the <see cref="RShockAPI" /> class.
         /// </summary>
@@ -90,8 +84,6 @@ namespace RaptorShock
         public RShockAPI()
         {
             Order = 0;
-
-           
         }
 
         /// <inheritdoc />
@@ -104,21 +96,8 @@ namespace RaptorShock
             }
 
             Log.Info("Initialized RaptorShock.");
-            CommandManager.AddParser(typeof(byte), s => byte.TryParse(s, out var result) ? (object)result : null);
-            CommandManager.AddParser(typeof(float), s => float.TryParse(s, out var result) ? (object)result : null);
-            CommandManager.AddParser(typeof(int), s => int.TryParse(s, out var result) ? (object)result : null);
-            CommandManager.AddParser(typeof(Item), s =>
-            {
-                var items = Utils.GetItemsByNameOrId(s);
-                return items.Count == 1 ? items[0] : null;
-            });
-            CommandManager.AddParser(typeof(Projectile), s =>
-            {
-                var projectiles = Utils.GetProjectilesByNameOrId(s);
-                return projectiles.Count == 1 ? projectiles[0] : null;
-            });
-            CommandManager.AddParser(typeof(string), s => s);
-            CommandManager.Register(Commands);
+
+            CommandManager.Commands.InitCommands();
 
             GameHooks.Initialized += OnGameInitialized;
             GameHooks.Lighting += OnGameLighting;
@@ -148,7 +127,9 @@ namespace RaptorShock
 
             base.Dispose(disposing);
         }
+        #endregion
 
+        #region Hooks
         private void OnGameInitialized(object sender, EventArgs e)
         {
             Main.showSplash = Config.ShowSplashScreen;
@@ -157,7 +138,7 @@ namespace RaptorShock
 
         private void OnGameLighting(object sender, LightingEventArgs e)
         {
-            if (Commands.IsFullBright)
+            if (PlayerExtension.IsFullBright)
             {
                 e.SwipeData.function = lsd =>
                 {
@@ -178,6 +159,7 @@ namespace RaptorShock
 
             _lastKeyboard = _keyboard;
             _keyboard = Keyboard.GetState();
+            
             Main.chatRelease = false;
 
             // Don't misinterpret key presses in menus.
@@ -200,8 +182,7 @@ namespace RaptorShock
                     {
                         try
                         {
-                            CommandManager.Run(chatText.Substring(1));
-                            Log.Info($"Executed '{chatText}'.");
+                            CommandManager.Commands.HandleCommand(chatText);
                         }
                         catch (FormatException ex)
                         {
@@ -244,7 +225,7 @@ namespace RaptorShock
 
         private void OnPlayerHurting(object sender, HurtingEventArgs e)
         {
-            if (e.IsLocal && Commands.IsGodMode)
+            if (e.IsLocal && PlayerExtension.IsGodMode)
             {
                 e.Handled = true;
             }
@@ -252,7 +233,7 @@ namespace RaptorShock
 
         private void OnPlayerKill(object sender, KillEventArgs e)
         {
-            if (e.IsLocal && Commands.IsGodMode)
+            if (e.IsLocal && PlayerExtension.IsGodMode)
             {
                 e.Handled = true;
             }
@@ -263,27 +244,27 @@ namespace RaptorShock
             if (e.IsLocal)
             {
                 var player = e.Player;
-                if (Commands.IsNoclip)
+                if (PlayerExtension.IsNoclip)
                 {
                     float movespeed = IsKeyDown(Keys.LeftShift) ? player.moveSpeed * Config.NoclipSpeedBoost : player.moveSpeed;
                     if (player.controlLeft)
                     {
-                        Commands.NoclipPosition += new Vector2(-movespeed, 0);
+                        PlayerExtension.NoclipPosition += new Vector2(-movespeed, 0);
                     }
                     if (player.controlRight)
                     {
-                        Commands.NoclipPosition += new Vector2(movespeed, 0);
+                        PlayerExtension.NoclipPosition += new Vector2(movespeed, 0);
                     }
                     if (player.controlUp)
                     {
-                        Commands.NoclipPosition += new Vector2(0, -movespeed);
+                        PlayerExtension.NoclipPosition += new Vector2(0, -movespeed);
                     }
                     if (player.controlDown)
                     {
-                        Commands.NoclipPosition += new Vector2(0, movespeed);
+                        PlayerExtension.NoclipPosition += new Vector2(0, movespeed);
                     }
                     player.gfxOffY = 0;
-                    player.position = Commands.NoclipPosition;
+                    player.position = PlayerExtension.NoclipPosition;
                 }
             }
         }
@@ -293,11 +274,11 @@ namespace RaptorShock
             if (e.IsLocal)
             {
                 var player = e.Player;
-                if (Commands.DefenseValue != null)
+                if (PlayerExtension.DefenseValue != null)
                 {
-                    player.statDefense = Commands.DefenseValue.Value;
+                    player.statDefense = PlayerExtension.DefenseValue.Value;
                 }
-                if (Commands.IsInfiniteAmmo)
+                if (PlayerExtension.IsInfiniteAmmo)
                 {
                     foreach (var item in player.inventory)
                     {
@@ -307,38 +288,38 @@ namespace RaptorShock
                         }
                     }
                 }
-                if (Commands.IsInfiniteBreath || Commands.IsGodMode)
+                if (PlayerExtension.IsInfiniteBreath || PlayerExtension.IsGodMode)
                 {
                     player.breath = player.breathMax - 1;
                 }
-                if (Commands.IsInfiniteHealth || Commands.IsGodMode)
+                if (PlayerExtension.IsInfiniteHealth || PlayerExtension.IsGodMode)
                 {
                     player.statLife = player.statLifeMax2;
                 }
-                if (Commands.IsInfiniteMana || Commands.IsGodMode)
+                if (PlayerExtension.IsInfiniteMana || PlayerExtension.IsGodMode)
                 {
                     player.statMana = player.statManaMax2;
                 }
-                if (Commands.IsInfiniteWings)
+                if (PlayerExtension.IsInfiniteWings)
                 {
                     player.wingTime = 2;
                 }
-                if (Commands.RangeValue != null)
+                if (PlayerExtension.RangeValue != null)
                 {
-                    var range = Commands.RangeValue.Value;
-                    Player.tileRangeX = range;
-                    Player.tileRangeY = range;
+                    var range = PlayerExtension.RangeValue;
+                    Player.tileRangeX = range.Value;
+                    Player.tileRangeY = range.Value;
                 }
-                if (Commands.SpeedValue != null)
+                if (PlayerExtension.SpeedValue != null)
                 {
-                    var speed = (float)Commands.SpeedValue;
+                    var speed = (float)PlayerExtension.SpeedValue;
                     player.maxRunSpeed = speed;
                     player.moveSpeed = speed;
                     player.runAcceleration = speed / 12.5f;
                 }
             }
         }
+        #endregion
 
-       
     }
 }
