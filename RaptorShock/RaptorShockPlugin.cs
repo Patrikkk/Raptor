@@ -140,33 +140,33 @@ namespace RaptorShock
             Main.showSplash = Config.ShowSplashScreen;
             Utils.InitializeNames();
             PlayerHooks.KeysPressed += PlayerHooks_KeyPressed;
-            PlayerHooks.KeysTapped += PlayerHooks_KeysTapped;
+            PlayerHooks.KeysTapped += ProcessHotkeys;
         }
 
-        private void PlayerHooks_KeysTapped(object sender, KeyboardEventArgs e)
+        private void ProcessHotkeys(object sender, KeyboardEventArgs e)
         {
             //Utils.ShowInfoMessage($"Tapped {string.Join(", ", e.Keys.Select(k => k.ToString()))}");
-            
-            string symbol = "";
-            string keys = string.Join(" ", e.Keys);
-            if (e.Keys.Count > 1 && Utils.ModifierSymbols.ContainsKey(e.Keys.Last()))
-            {
-                symbol = Utils.ModifierSymbols[e.Keys.Last()];
-                keys = string.Join(" ", e.Keys.Remove(e.Keys.Last()));
-            }
 
-            if (Config.HotKeys.ContainsKey(symbol+keys))
-            {
-                List<string> lines = Config.HotKeys[symbol + keys];
-                foreach (string line in lines)
-                    CommandManager.Commands.HandleCommand(line);
-            }
+            if (e.Handled)
+                return;
 
-
-            if (e.Keys.Contains(Keys.Escape) && Main.drawingPlayerChat)
+            if (!IsChatOpen)
             {
-                Main.chatText = "";
-                Main.PlaySound(11);
+                string symbol = "";
+                string keys = string.Join(" ", e.Keys);
+                if (e.Keys.Count > 1 && Utils.ModifierSymbols.ContainsKey(e.Keys.Last()))
+                {
+                    symbol = Utils.ModifierSymbols[e.Keys.Last()];
+                    keys = string.Join(" ", e.Keys.Remove(e.Keys.Last()));
+                }
+
+                if (Config.HotKeys.ContainsKey(symbol + keys))
+                {
+                    List<string> lines = Config.HotKeys[symbol + keys];
+                    foreach (string line in lines)
+                        CommandManager.Commands.HandleCommand(line);
+                    e.Handled = true;
+                }
             }
         }
 
