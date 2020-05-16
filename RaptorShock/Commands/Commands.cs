@@ -314,10 +314,9 @@ namespace RaptorShock.CommandManager
         {
             if (args.Parameters.Count < 1)
                 throw new CommandException("Invalid syntax! Syntax: .item <item-name> [stack-size] [prefix]");
-            string itemName = args.Parameters[0];
 
             int amountParamIndex = -1;
-            int itemAmount = 0;
+            int itemAmount = 1;
             for (int i = 1; i < args.Parameters.Count; i++)
             {
                 if (int.TryParse(args.Parameters[i], out itemAmount))

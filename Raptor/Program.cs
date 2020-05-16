@@ -111,7 +111,7 @@ namespace Raptor
                 Assembly assembly;
                 if (!loadedAssemblies.TryGetValue(fileName, out assembly))
                 {
-                    assembly = Assembly.Load(File.ReadAllBytes(path));
+                    assembly = Assembly.LoadFrom(path);
                     loadedAssemblies.Add(fileName, assembly);
                     return assembly;
                 }

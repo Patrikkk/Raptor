@@ -23,14 +23,15 @@ namespace RaptorShock
         /// <summary>
         /// Speed of noclip movement when holding shift.
         /// </summary>
-        public int NoclipSpeedBoost { get; set; } = 2;
+        public int NoclipSpeedBoost { get; set; } = 20;
 
         /// <summary>
         /// List of hotkeys. 
         /// </summary>
         public Dictionary<string, List<string>> HotKeys { get; set; } = new Dictionary<string, List<string>>() 
         {
-            { "F", new List<string>() { ".goto" } }
+            { "F", new List<string>() { ".goto" } },
+            { "b", new List<string>() { ".butcher" } }
         };
 
 

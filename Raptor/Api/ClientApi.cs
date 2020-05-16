@@ -38,7 +38,7 @@ namespace Raptor.Api
             {
                 try
                 {
-                    var assembly = Assembly.Load(File.ReadAllBytes(pluginPath));
+                    var assembly = Assembly.LoadFrom(pluginPath);
                     var pluginTypes = from t in assembly.GetExportedTypes()
                                       where t.IsSubclassOf(typeof(TerrariaPlugin)) && !t.IsAbstract
                                       select t;

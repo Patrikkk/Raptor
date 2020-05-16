@@ -112,7 +112,7 @@ namespace RaptorShock
         {
             if (disposing)
             {
-                File.WriteAllText(ConfigPath, JsonConvert.SerializeObject(Config, Formatting.Indented));
+                Config.Write(ConfigPath);
 
                 GameHooks.Initialized -= OnGameInitialized;
                 GameHooks.Lighting -= OnGameLighting;
