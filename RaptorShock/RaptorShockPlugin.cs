@@ -74,6 +74,13 @@ namespace RaptorShock
         /// </summary>
         public static bool IsAltDown => IsKeyDown(Keys.LeftAlt) || IsKeyDown(Keys.RightAlt);
 
+        /// <summary>
+        /// Temporary fix.
+        /// Storing our own bool because Main.drawingPlayerChat is updated before OnUpdate.
+        /// Thus when Escape is pressed, Terraria already sets it to false.
+        /// </summary>
+        public static bool IsChatOpen { get; set; }
+
         #region Initialize
         /// <summary>
         ///     Initializes the <see cref="RShockAPI" /> class.
@@ -154,6 +161,13 @@ namespace RaptorShock
                 foreach (string line in lines)
                     CommandManager.Commands.HandleCommand(line);
             }
+
+
+            if (e.Keys.Contains(Keys.Escape) && Main.drawingPlayerChat)
+            {
+                Main.chatText = "";
+                Main.PlaySound(11);
+            }
         }
 
         private void PlayerHooks_KeyPressed(object sender, KeyboardEventArgs e)
@@ -204,9 +218,6 @@ namespace RaptorShock
                 return;
             }
 
-            if (Main.oldKeyState != Main.keyState)
-                PlayerHooks.InvokeKeysPressed(Main.keyState.GetPressedKeys().ToList());
-
             Main.chatRelease = false;
 
             // Don't misinterpret key presses in menus.
@@ -215,11 +226,15 @@ namespace RaptorShock
                 return;
             }
 
+            if (Main.oldKeyState != Main.keyState)
+                PlayerHooks.InvokeKeysPressed(Main.keyState.GetPressedKeys().ToList());
+
             if (IsKeyTapped(Keys.Enter) && !IsAltDown)
             {
-                Main.drawingPlayerChat = !Main.drawingPlayerChat;
-                if (Main.drawingPlayerChat)
+                if (!IsChatOpen)
                 {
+                    Main.drawingPlayerChat = true;
+                    IsChatOpen = true;
                     Main.PlaySound(10);
                 }
                 else
@@ -260,13 +275,20 @@ namespace RaptorShock
                     }
 
                     Main.chatText = "";
+                    IsChatOpen = false;
+                    Main.drawingPlayerChat = false;
                     Main.PlaySound(11);
                 }
             }
-            if (IsKeyTapped(Keys.Escape) && Main.drawingPlayerChat)
+            else if (IsKeyTapped(Keys.Escape))
             {
-                Main.chatText = "";
-                Main.PlaySound(11);
+                if (IsChatOpen)
+                {
+                    Main.drawingPlayerChat = false;
+                    IsChatOpen = false;
+                    Main.chatText = "";
+                    Main.PlaySound(11);
+                }
             }
         }
 
@@ -293,7 +315,7 @@ namespace RaptorShock
                 var player = e.Player;
                 if (PlayerExtension.IsNoclip)
                 {
-                    float movespeed = IsKeyDown(Keys.LeftShift) ? player.moveSpeed * Config.NoclipSpeedBoost : player.moveSpeed;
+                    float movespeed = IsKeyDown(Keys.LeftShift) ? player.moveSpeed * Config.NoclipBoostSpeed : player.moveSpeed * 5;
                     if (player.controlLeft)
                     {
                         PlayerExtension.NoclipPosition += new Vector2(-movespeed, 0);
