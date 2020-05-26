@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using JetBrains.Annotations;
 using Terraria;
+using Terraria.Graphics.Light;
 
 namespace Raptor.Hooks.Events.Game
 {
@@ -12,9 +13,9 @@ namespace Raptor.Hooks.Events.Game
 	[PublicAPI]
     public sealed class LightingEventArgs : HandledEventArgs
     {
-        internal LightingEventArgs(Lighting.LightingSwipeData swipeData)
+        internal LightingEventArgs(ILightingEngine engine)
         {
-            SwipeData = swipeData;
+            LightingEngine = engine;
         }
 
         /// <summary>
@@ -22,7 +23,7 @@ namespace Raptor.Hooks.Events.Game
         /// </summary>
         [CLSCompliant(false)]
         [NotNull]
-        public Lighting.LightingSwipeData SwipeData { get; }
+        public static ILightingEngine LightingEngine;
     }
 #endif
 }

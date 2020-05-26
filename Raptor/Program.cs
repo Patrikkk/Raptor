@@ -74,6 +74,7 @@ namespace Raptor
                 }
             }
 
+            var relogic = Assembly.Load(File.ReadAllBytes("ReLogic.dll"));
             var assembly = AssemblyDefinition.ReadAssembly(terrariaPath);
             var modifications = from t in Assembly.GetExecutingAssembly().GetTypes()
                                 where t.IsSubclassOf(typeof(Modification))
@@ -85,7 +86,7 @@ namespace Raptor
             using (var stream = new MemoryStream())
             {
                 assembly.Write(stream);
-#if DEBUG
+#if PATCHING || DEBUG
                 assembly.Write("debug.exe");
 #endif
                 _terrariaAssembly = Assembly.Load(stream.ToArray());
@@ -141,7 +142,8 @@ namespace Raptor
             using (var clientApi = new ClientApi())
             {
                 clientApi.LoadPlugins();
-                Terraria.Program.LaunchGame(args);
+                Terraria.WindowsLaunch.Main(args);
+                //Terraria.Program.LaunchGame(args);
             }
         }
 

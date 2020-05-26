@@ -4,6 +4,7 @@ using JetBrains.Annotations;
 using Microsoft.Xna.Framework.Content;
 using Raptor.Hooks.Events.Game;
 using Terraria;
+using Terraria.Graphics.Light;
 
 namespace Raptor.Hooks
 {
@@ -45,9 +46,9 @@ namespace Raptor.Hooks
         }
 
 #if DEBUG
-		internal static bool InvokeLighting(object swipeData)
+		internal static bool InvokeLighting(object engine)
         {
-            var args = new LightingEventArgs((Lighting.LightingSwipeData)swipeData);
+            var args = new LightingEventArgs((ILightingEngine)engine);
             Lighting?.Invoke(null, args);
             return args.Handled;
         }

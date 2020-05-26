@@ -5,6 +5,7 @@ using Raptor.Hooks;
 
 namespace Raptor.Modifications.Game
 {
+#if DEBUG
     using static Instruction;
 
     internal sealed class LightingHook : Modification
@@ -13,6 +14,7 @@ namespace Raptor.Modifications.Game
 
         private static void InjectHooks(MethodDefinition method)
         {
+           
             var module = method.Module;
             var body = method.Body;
             var instructions = body.Instructions;
@@ -27,7 +29,7 @@ namespace Raptor.Modifications.Game
                 var method2 = (MethodReference)instruction.Operand;
                 var type = method2.DeclaringType;
                 if (method2.Name != "Invoke" || !type.IsGenericInstance ||
-                    ((GenericInstanceType)type).GenericArguments[0].Name != "LightingSwipeData")
+                    ((GenericInstanceType)type).GenericArguments[0].Name != "ILightingEngine")
                 {
                     continue;
                 }
@@ -50,14 +52,15 @@ namespace Raptor.Modifications.Game
             var lighting = assembly.GetType("Lighting");
 
             // Single-core lighting
-            var doColors = lighting.GetMethod("doColors");
-            InjectHooks(lighting.GetMethod("doColors"));
+            var doColors = lighting.GetMethod("LightTiles");
+            InjectHooks(lighting.GetMethod("LightTiles"));
             doColors.ReplaceShortBranches();
 
-            // Multi-core lighting
+          /*  // Multi-core lighting
             var callbackLightingSwipe = lighting.GetMethod("callback_LightingSwipe");
             InjectHooks(callbackLightingSwipe);
-            callbackLightingSwipe.ReplaceShortBranches();
+            callbackLightingSwipe.ReplaceShortBranches();*/
         }
     }
+#endif
 }
