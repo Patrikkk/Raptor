@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using JetBrains.Annotations;
 using Terraria;
+using Terraria.Graphics.Light;
 
 namespace Raptor.Hooks.Events.Game
 {
@@ -12,17 +13,17 @@ namespace Raptor.Hooks.Events.Game
 	[PublicAPI]
     public sealed class LightingEventArgs : HandledEventArgs
     {
-        internal LightingEventArgs(Lighting.LightingSwipeData swipeData)
+        internal LightingEventArgs(float globalBrightness)
         {
-            SwipeData = swipeData;
+            GlobalBrightness = globalBrightness;
         }
 
         /// <summary>
-        ///     Gets the swipe data.
+        ///  Gets the global brightness value.
         /// </summary>
         [CLSCompliant(false)]
         [NotNull]
-        public Lighting.LightingSwipeData SwipeData { get; }
+        public float GlobalBrightness { get; }
     }
 #endif
 }

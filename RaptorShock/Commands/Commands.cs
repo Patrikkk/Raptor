@@ -364,7 +364,7 @@ namespace RaptorShock.CommandManager
             item.position = Utils.LocalPlayer.Center;
             item.Prefix(prefixId);
 
-            Utils.LocalPlayer.GetItem(Utils.LocalPlayer.whoAmI, item);
+            Utils.LocalPlayer.GetItem(Utils.LocalPlayer.whoAmI, item, new GetItemSettings());
             Utils.ShowSuccessMessage($"Spawned {itemAmount} {item.Name}(s).");
         }
         [Command("noclip", "nc")]

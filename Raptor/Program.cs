@@ -85,7 +85,7 @@ namespace Raptor
             using (var stream = new MemoryStream())
             {
                 assembly.Write(stream);
-#if DEBUG
+#if PATCHING || DEBUG
                 assembly.Write("debug.exe");
 #endif
                 _terrariaAssembly = Assembly.Load(stream.ToArray());

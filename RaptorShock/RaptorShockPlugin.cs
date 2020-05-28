@@ -14,6 +14,7 @@ using Raptor.Hooks;
 using Raptor.Hooks.Events.Game;
 using Raptor.Hooks.Events.Player;
 using Terraria;
+using Terraria.Audio;
 using Terraria.Chat;
 
 namespace RaptorShock
@@ -201,13 +202,15 @@ namespace RaptorShock
         {
             if (PlayerExtension.IsFullBright)
             {
-                e.SwipeData.function = lsd =>
+                Lighting.GlobalBrightness = 4f;
+                //Lighting.LightTiles(Main.instance.firstTileX, Main.instance.lastTileX, Main.instance.firstTileY, Main.instance.lastTileY);
+                /*e.LightingEngine.AddLight = lsd =>
                 {
                     foreach (var state in lsd.jaggedArray.SelectMany(s => s))
                     {
                         state.r = state.r2 = state.g = state.g2 = state.b = state.b2 = 1;
                     }
-                };
+                };*/
             }
         }
 
@@ -235,7 +238,7 @@ namespace RaptorShock
                 {
                     Main.drawingPlayerChat = true;
                     IsChatOpen = true;
-                    Main.PlaySound(10);
+                    SoundEngine.PlaySound(10);
                 }
                 else
                 {
@@ -270,14 +273,14 @@ namespace RaptorShock
                         }
                         else
                         {
-                            NetMessage.SendChatMessageFromClient(new ChatMessage(chatText));
+                            ChatHelper.SendChatMessageFromClient(new ChatMessage(chatText));
                         }
                     }
 
                     Main.chatText = "";
                     IsChatOpen = false;
                     Main.drawingPlayerChat = false;
-                    Main.PlaySound(11);
+                    SoundEngine.PlaySound(11);
                 }
             }
             else if (IsKeyTapped(Keys.Escape))
@@ -287,7 +290,7 @@ namespace RaptorShock
                     Main.drawingPlayerChat = false;
                     IsChatOpen = false;
                     Main.chatText = "";
-                    Main.PlaySound(11);
+                    SoundEngine.PlaySound(11);
                 }
             }
         }
