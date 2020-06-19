@@ -32,7 +32,18 @@ namespace Raptor.Hooks
         /// </summary>
         public static event EventHandler<SentDataEventArgs> SentData;
 
-        internal static bool InvokeGetData(object messageBuffer, int index, int length)
+		/// <summary>
+		/// Invoked when the written bytes are being sent.
+		/// </summary>
+		public static event EventHandler<SendBytesEventArgs> SendBytes;
+
+		/// <summary>
+		/// Invoked after the written bytes were sent.
+		/// </summary>
+		public static event EventHandler<SentBytesEventArgs> SentBytes;
+
+
+		internal static bool InvokeGetData(object messageBuffer, int index, int length)
         {
             var args = new GetDataEventArgs((MessageBuffer)messageBuffer, index, length);
             GetData?.Invoke(null, args);
@@ -60,5 +71,15 @@ namespace Raptor.Hooks
                 new SentDataEventArgs(packetType, (NetworkText)text, number1, number2, number3, number4, number5,
                     number6, number7));
         }
-    }
+
+		internal static void InvokeSendBytes(byte[] buffer, int offset, int count)
+		{
+			SendBytes?.Invoke(null, new SendBytesEventArgs(buffer, offset, count));
+		}
+
+		internal static void InvokeSentBytes(byte[] buffer, int offset, int count)
+		{
+			SentBytes?.Invoke(null, new SentBytesEventArgs(buffer, offset, count));
+		}
+	}
 }

@@ -119,7 +119,9 @@
     <Compile Include="Hooks\Events\Game\LoadedContentEventArgs.cs" />
     <Compile Include="Hooks\Events\Net\GetDataEventArgs.cs" />
     <Compile Include="Hooks\Events\Net\GotDataEventArgs.cs" />
+    <Compile Include="Hooks\Events\Net\SendBytesEventArgs.cs" />
     <Compile Include="Hooks\Events\Net\SendDataEventArgs.cs" />
+    <Compile Include="Hooks\Events\Net\SentBytesEventArgs.cs" />
     <Compile Include="Hooks\Events\Net\SentDataEventArgs.cs" />
     <Compile Include="Hooks\Events\Player\HurtEventArgs.cs" />
     <Compile Include="Hooks\Events\Player\HurtingEventArgs.cs" />
@@ -138,6 +140,7 @@
     <Compile Include="Modifications\MakeTypesPublic.cs" />
     <Compile Include="Modifications\Modification.cs" />
     <Compile Include="Modifications\Net\GetDataHooks.cs" />
+    <Compile Include="Modifications\Net\SendBytesHooks.cs" />
     <Compile Include="Modifications\Net\SendDataHooks.cs" />
     <Compile Include="Modifications\PatchJson.cs" />
     <Compile Include="Modifications\Player\HurtHooks.cs" />
